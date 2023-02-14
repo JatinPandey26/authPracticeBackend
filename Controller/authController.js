@@ -1,7 +1,7 @@
 import { User } from "../Model/User.js";
 import { sendToken } from "../utils/sendToken.js";
 import jwt from "jsonwebtoken";
- 
+
 export const RegisterController = async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -50,21 +50,56 @@ export const LoginController = async (req, res, next) => {
   sendToken(user, "Welcome back " + user.name, res);
 };
 
+export const getMeController = async (req, res, next) => {
+  const { token } = req.cookies;
+  console.log(token);
+
+  if (!token) {
+    return res.status(401).json({
+      message: "You are not logged in token not found",
+
+      isAuthenticated: false,
+    });
+  }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const user = await User.findById(decoded._id);
+
+  if (!user) {
+    return res.status(401).json({
+      message: "not logged in",
+      isAuthenticated: false,
+    });
+  }
+
+  req.user = user;
+
+  return res.status(200).json({
+    message: "logged in",
+    isAuthenticated: true,
+  });
+};
+
 // middleware
 export const isAuthenticated = async (req, res, next) => {
-  const {token} = req.cookies;
+  const { token } = req.cookies;
   console.log(token);
   if (!token) {
-    return res.status(401).json({ 
+    return res.status(401).json({
       message: "You are not logged in",
     });
   }
 
-  const decoded =  jwt.verify(token, process.env.JWT_SECRET);
- 
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
   const user = await User.findById(decoded.id);
 
-  req.user = user;
+  if (!user) {
+    return res.status(401).json({
+      message: "You are not logged in",
+    });
+  }
 
   next();
 };
