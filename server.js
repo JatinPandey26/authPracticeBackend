@@ -13,8 +13,6 @@ dotenv.config({
 
 connect();
 
-app.use(express.json());
-
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -22,6 +20,8 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
+app.use(express.json());
+
 
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
